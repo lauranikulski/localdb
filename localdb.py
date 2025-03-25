@@ -1,42 +1,31 @@
 import sqlite3
 
-# create connection to db file
-myconnection = sqlite3.connect("mydb.db")  # Creates a file 'my_database.db'
+# check if my record exists
+def record_exists(cursor, film_name):
+    cursor.execute("SELECT 1 FROM films WHERE name = ?", (film_name,))
+    return cursor.fetchone() is not None  # Returns True if a record exists
 
-# a cursor like so keeps track of the position in the result set
-cursor = myconnection.cursor()
+# Connect to database (automatically closes at the end)
+with sqlite3.connect("mydb.db") as myconnection:
+    cursor = myconnection.cursor()
 
-# check for changes 
-print(myconnection.total_changes)
-
-if cursor.fetchone() is None: 
-
-# connect to database
-    with sqlite3.connect("mydb.db") as myconnection:
-        cursor = myconnection.cursor()
-    
-    # create a table
-        cursor.execute('''CREATE TABLE IF NOT EXISTS films (
-                        id INTEGER PRIMARY KEY,
-                        name TEXT,
+    # Create the table if it doesn't exist
+    cursor.execute('''CREATE TABLE IF NOT EXISTS films (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT UNIQUE, 
                         release_year INTEGER
                     )''')
 
-    # add entries
-        cursor.execute("INSERT INTO films (id, name, release_year) VALUES (?, ?, ?)", 
-                (1, "The Matrix", 1999))
-        cursor.execute("INSERT INTO films (id, name, release_year) VALUES (?, ?, ?)", 
-                (2, "Monster's, Inc.", 2001))
+    # records I want to add
+    films = [("The Matrix", 1999), ("Monster's, Inc.", 2001)]
 
-        with sqlite3.connect("mydb.db") as myconnection:
-            cursor = myconnection.cursor()
-            cursor.execute("SELECT * FROM films")
-            rows = cursor.fetchall()
-    
-            for row in rows:
-                print(row)  # Output: (1, 'The Matrix', 1999), (2, "Monster's, Inc.", 2001)
-    
-    
-# Commit changes and close the connection
-myconnection.commit()
-myconnection.close()
+    for film in films:
+        if not record_exists(cursor, film[0]):  # Only insert if the film is not already in the table
+            cursor.execute("INSERT INTO films (name, release_year) VALUES (?, ?)", film)
+
+    # show what's in my database
+    cursor.execute("SELECT * FROM films")
+    rows = cursor.fetchall()
+
+    for row in rows:
+        print(row)  # Output: (1, 'The Matrix', 1999), (2, "Monster's, Inc.", 2001)
