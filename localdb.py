@@ -9,9 +9,9 @@ def record_exists(cursor, film_name):
 with sqlite3.connect("mydb.db") as myconnection:
     cursor = myconnection.cursor()
 
-    # Create the table if it doesn't exist
+    # Create the table if it doesn't exist. AUTOINCREMENT adds index +1 per entry
     cursor.execute('''CREATE TABLE IF NOT EXISTS films (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        id INTEGER PRIMARY KEY AUTOINCREMENT, 
                         name TEXT UNIQUE, 
                         release_year INTEGER
                     )''')
@@ -28,4 +28,4 @@ with sqlite3.connect("mydb.db") as myconnection:
     rows = cursor.fetchall()
 
     for row in rows:
-        print(row)  # Output: (1, 'The Matrix', 1999), (2, "Monster's, Inc.", 2001)
+        print(row)  
